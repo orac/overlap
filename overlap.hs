@@ -1,14 +1,15 @@
 import System.IO
 import System.Environment
 import Data.List
-import qualified Data.ByteString.Lazy.Char8 as L
+import qualified Data.Text as T
 
-readWordList :: FilePath -> IO [L.ByteString]
+readWordList :: FilePath -> IO [T.Text]
 readWordList file = do
-    content <- L.readFile file
-    return $ L.split '\n' content
+    content <- readFile file
+    let list = lines content in
+        return $ sort $ map (T.toUpper . T.pack) list
 
-sortedIntersect :: [L.ByteString] -> [L.ByteString] -> [L.ByteString]
+sortedIntersect :: Ord a => [a] -> [a] -> [a]
 sortedIntersect (x:xs) (y:ys) = case compare x y of
                                   LT -> sortedIntersect xs (y:ys)
                                   GT -> sortedIntersect (x:xs) ys
@@ -20,4 +21,4 @@ main = do
     files <- getArgs
     wordLists <- mapM readWordList files
     let wordLists' = map sort wordLists in
-        mapM_ L.putStrLn $ if null wordLists' then [] else foldr1 sortedIntersect wordLists'
+        mapM_ (putStrLn . T.unpack) $ if null wordLists' then [] else foldl1 sortedIntersect wordLists'
